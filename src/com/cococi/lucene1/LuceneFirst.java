@@ -1,16 +1,21 @@
 package com.cococi.lucene1;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.*;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 public class LuceneFirst {
     @Test
@@ -58,5 +63,52 @@ public class LuceneFirst {
         indexWriter.close();
 
 
+    }
+
+    @Test
+    public void searchIndex() throws Exception {
+//        第一步：创建一个Directory对象，也就是索引库存放的位置。
+        Directory directory = FSDirectory.open(new File("D:\\temp\\index").toPath());
+//        第二步：创建一个indexReader对象，需要指定Directory对象。
+        IndexReader indexReader = DirectoryReader.open(directory);
+
+//        第三步：创建一个indexsearcher对象，需要指定IndexReader对象
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+//        第四步：创建一个TermQuery对象，指定查询的域和查询的关键词。
+        Query query = new TermQuery(new Term("filename", "apache"));
+//        第五步：执行查询。
+        TopDocs topDocs = indexSearcher.search(query, 10);
+//        第六步：返回查询结果。遍历查询结果并输出。
+        System.out.println("查询结果的总条数："+ topDocs.totalHits);
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            //scoreDoc.doc属性就是document对象的id
+            //根据document的id找到document对象
+            Document document = indexSearcher.doc(scoreDoc.doc);
+            System.out.println(document.get("filename"));
+            //System.out.println(document.get("content"));
+            System.out.println(document.get("path"));
+            System.out.println(document.get("size"));
+            System.out.println("-------------------------");
+        }
+
+//        第七步：关闭IndexReader对象
+        indexReader.close();
+    }
+    @Test
+    public void analyzer() throws Exception {
+        //创建一个Analyzer，StandardAnalyzer子类实现
+        Analyzer analyzer = new StandardAnalyzer();
+        //调用分析器对象的tokenStream方法获得tokenStream对象
+        TokenStream tokenStream = analyzer.tokenStream("", "The Spring Framework provides a comprehensive programming and configuration model.");
+        //向tokenStream中设置一个引用，相当于一个指针
+        CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
+        //调用tokenStream的reset方法，重置指针
+        tokenStream.reset();
+        //while循环调用显示结果
+        while (tokenStream.incrementToken()){
+            System.out.println(charTermAttribute.toString());
+        }
+
+        tokenStream.close();
     }
 }
