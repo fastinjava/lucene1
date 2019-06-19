@@ -111,4 +111,5 @@ public class LuceneFirst {
 
         tokenStream.close();
     }
+
 }
