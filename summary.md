@@ -149,6 +149,64 @@
    
 # spring data jpa
 
+## orm思想和hibernate以及jpa的概述和jpa的基本操作    
+
+### orm思想
+    
+    ORM: Object Relation Mapping对象关系映射
+    主要目的：操作object相当于操作数据库表，解放开发人员对于数据库开发的依赖
+    建立两个映射关系
+        object和table的映射关系
+        object中的属性和table中的字段的映射关系
+    
+    特点：不再注重sql语句的书写
+    实现了ORM思想的框架：mybatis，hibernate   
+### hibernate框架介绍
+ 	Hibernate是一个开放源代码的对象关系映射框架，
+ 		它对JDBC进行了非常轻量级的对象封装，
+ 		它将POJO与数据库表建立映射关系，是一个全自动的orm框架
+### JPA规范
+    jpa规范，实现jpa规范，内部是由接口和抽象类组成           
+### JPA的操作步骤
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <persistence xmlns="http://java.sun.com/xml/ns/persistence"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://java.sun.com/xml/ns/persistence
+        http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+                 version="2.0">
+        <!--配置持久化单元
+            name：持久化单元名称
+            transaction-type：事务类型
+                 RESOURCE_LOCAL：本地事务管理
+                 JTA：分布式事务管理 -->
+        <persistence-unit name="myJpa" transaction-type="RESOURCE_LOCAL">
+            <!--配置JPA规范的服务提供商 -->
+            <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+            <properties>
+                <!-- 数据库驱动 -->
+                <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
+                <!-- 数据库地址 -->
+                <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/test" />
+                <!-- 数据库用户名 -->
+                <property name="javax.persistence.jdbc.user" value="root" />
+                <!-- 数据库密码 -->
+                <property name="javax.persistence.jdbc.password" value="root" />
+    
+                <!--jpa提供者的可选配置：我们的JPA规范的提供者为hibernate，所以jpa的核心配置中兼容hibernate的配 -->
+                <property name="hibernate.show_sql" value="true" />
+                <property name="hibernate.format_sql" value="true" />
+                <!--value:create
+                          update
+                -->
+                <property name="hibernate.hbm2ddl.auto" value="update" />
+            </properties>
+        </persistence-unit>
+    </persistence>
+
+
+
+
 # spring boot
 
 # git
