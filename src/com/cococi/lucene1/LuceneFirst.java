@@ -13,9 +13,9 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.Test;
+import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import java.io.File;
-import java.io.IOException;
 
 public class LuceneFirst {
     @Test
@@ -25,7 +25,7 @@ public class LuceneFirst {
 //        1）指定索引库的存放位置Directory对象
         Directory directory = FSDirectory.open(new File("D:\\temp\\index").toPath());
 //        2）指定一个IndexWriterConfig对象。
-        IndexWriter indexWriter = new IndexWriter(directory, new IndexWriterConfig());
+        IndexWriter indexWriter = new IndexWriter(directory, new IndexWriterConfig(new IKAnalyzer()));
 //        第二步：创建document对象。
         File dir = new File("D:\\temp\\searchsource");
         for (File file : dir.listFiles()) {
@@ -97,9 +97,9 @@ public class LuceneFirst {
     @Test
     public void analyzer() throws Exception {
         //创建一个Analyzer，StandardAnalyzer子类实现
-        Analyzer analyzer = new StandardAnalyzer();
+        Analyzer analyzer = new IKAnalyzer();
         //调用分析器对象的tokenStream方法获得tokenStream对象
-        TokenStream tokenStream = analyzer.tokenStream("", "The Spring Framework provides a comprehensive programming and configuration model.");
+        TokenStream tokenStream = analyzer.tokenStream("", "Eclipse的编辑功能非常强大,掌握了Eclipse快捷键功能,能够大大提高开发效率。");
         //向tokenStream中设置一个引用，相当于一个指针
         CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
         //调用tokenStream的reset方法，重置指针
