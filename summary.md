@@ -302,6 +302,69 @@
 		5.提交事务
 		6.释放资源
 
+### 案例步骤
+
+    	i.搭建环境的过程
+    		1.创建maven工程导入坐标
+    		2.需要配置jpa的核心配置文件
+    			*位置：配置到类路径下的一个叫做 META-INF 的文件夹下
+    			*命名：persistence.xml
+    		3.编写客户的实体类
+    		4.配置实体类和表，类中属性和表中字段的映射关系
+    		    实体类中的各项配置：
+    		        实体类上的注解：
+    		            @Entity //声明实体类
+    		            @Table(name="cst_customer") //建立实体类和表的映射关系
+    		5.保存客户到数据库中
+    	ii.完成基本CRUD案例
+    		persist ： 保存
+    		merge ： 更新
+    		remove ： 删除
+    		find/getRefrence ： 根据id查询
+    		
+### 案例演示
+
+    测试方法牵执行
+         /**
+         * 创建实体管理类工厂，借助Persistence的静态方法获取
+         * 		其中传递的参数为持久化单元名称，需要jpa配置文件中指定
+         * 	Persistence
+         */
+        EntityManagerFactory factory = Persistence.createEntityManagerFactory("myJpa");
+        //创建实体管理类
+        EntityManager em = factory.createEntityManager();
+        //获取事务对象
+        EntityTransaction tx = em.getTransaction();
+        //开启事务
+        tx.begin();
+        
+        执行操作
+            添加方法：
+            Customer c = new Customer();
+            c.setCustName("传智播客");
+            em.persist(c);
+            
+            
+            查询方法：find立即加载；getReference延迟加载，获取到的是一个动态代理对象
+            em.find(Custeomer.class,1l)
+            em.getReference(Customer.class,1L);
+            
+            删除客户案例
+            Customer customer = em.find(Customer.class, 1l);
+            em.remove(customer);        
+                    
+            Customer customer = em.find(Customer.class, 2l);
+            customer.setCustAddress("杭州西湖区骆家庄西元一曲");
+            em.clear();
+            em.merge(customer);
+            
+         //提交事务
+        tx.commit();
+        //释放资源
+        em.close();
+        factory.close();
+        
+         		
 
 
 # spring boot
