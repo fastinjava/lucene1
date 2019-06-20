@@ -651,4 +651,259 @@
     
 # spring boot
 
+## spring boot简介
+    
+     1.1、原有spring的优缺点
+        优点：J2EE轻量级、依赖注入和面向切面编程EJB
+        缺点：配置繁杂、依赖难以管理
+     1.2、spring boot概述
+        特点：
+            为基于Spring的开发提供更快的入门体验
+            开箱即用，没有代码生成，也无需XML配置。同时也可以修改默认值来满足特定的需求
+            提供了一些大型项目中常见的非功能性特性，如嵌入式服务器、安全、指标，健康检测、外部配置等
+            SpringBoot不是对Spring功能上的增强，而是提供了一种快速使用Spring的方式       
+     1.3、SpringBoot的核心功能
+        起步依赖：其本身继承了一个父工程，该工程中默认定义了许多默认配置
+        自动配置
+## SpringBoot快速入门
+    
+    步骤：
+        1、创建一个普通maven jar工程
+        2、添加pom.xml依赖
+                <parent>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-parent</artifactId>
+                    <version>2.0.1.RELEASE</version>
+                </parent>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-web</artifactId>
+                    </dependency>
+                </dependencies>
+        3、编写springboot启动类
+            @SpringBootApplication
+            Application
+        4、编写Controller类
+            
+## SpringBoot快速入门原理分析
+
+
+    @SpringBootApplication：表明该类是要给springboot启动类
+    SpringApplication.run(MySpringBootApplication.class) ：运行该springboot启动类
+    
+    
+## 使用idea开发工具快速构建一个spring boot项目
+## SpringBoot原理分析
+
+    在pom.xml文件
+    分析spring-boot-starter-parent
+        parent节点已经定义好了一部分坐标、依赖管理、插件管理，SpringBoot工程继承spring-boot-starter-parent后已经具备版本锁定等配置了，起步依赖的作用就是进行依赖的管理
+    分析spring-boot-starter-web
+        web开发要使用的spring-web、spring-webmvc等坐标进行了“打包”
+        
+    自动配置原理分析：
+        @SpringBootApplication注解
+            相当于
+                @SpringBootConfiguration：等同与@Configuration，既标注该类是Spring的一个配置类    
+                @EnableAutoConfiguration：SpringBoot自动配置功能开启
+                    @Import(AutoConfigurationImportSelector.class)：引入别的配置文件
+
+
+## spring boot配置文件
+
+    有两种配置文件类型
+        application.properties
+        application.yml
+        
+        
+    配置文件可以配置一些spring boot的相关属性
+        比如配置tomcat的端口号
+            server.port=8888
+        修改工程路径
+            默认为/
+            server.servlet.context-path=demo                        
+        还有一些比较常见的配置信息，可以参看官网文档
+        
+        如何读取配置文件中的信息
+            在controller类中可以使用@value
+            
+            例如application.propertier中配置了：
+                person.name=zhangsan
+                person.age=12
+                
+                
+            在controller中如何去呢？
+                @Value("${person.name}")
+                private String name;
+                @Value("${person.age}")
+                private int age;
+
+## spring boot整合其他技术
+
+### spring boot整合mybatis
+
+        
+    添加依赖    
+        <!--mybatis起步依赖-->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>1.1.1</version>
+        </dependency>               
+        <!-- MySQL连接驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>    
+    
+        在application.properties中添加数据量的连接信息
+        
+        #DB Configuration:
+        spring.datasource.driverClassName=com.mysql.jdbc.Driver
+        spring.datasource.url=jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf8
+        spring.datasource.username=root
+        spring.datasource.password=root
+        
+        
+        数据库中创建表
+        
+        创建实体Bean
+        
+        编写Mapper接口
+        
+        @Mapper
+        public interface UserMapper {
+        	public List<User> queryUserList();
+        }     
+        
+       编写Mapper接口的配置文件
+       
+       在src\main\resources\mapper路径下加入UserMapper.xml配置文件"
+       
+       <?xml version="1.0" encoding="utf-8" ?>
+       <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+       <mapper namespace="com.itheima.mapper.UserMapper">
+           <select id="queryUserList" resultType="user">
+               select * from user
+           </select>
+       </mapper>
+       
+       application.properties中添加如下mybatis信息
+       
+       #spring集成Mybatis环境
+       #pojo别名扫描包
+       mybatis.type-aliases-package=com.itheima.domain
+       #加载Mybatis映射文件
+       mybatis.mapper-locations=classpath:mapper/*Mapper.xml
+       
+       
+
+### spring boot整合junit
+
+
+    添加依赖
+    
+    添加Spring Data JPA的起步依赖
+    <!-- springBoot JPA的起步依赖 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    
+    
+    添加数据库驱动依赖
+    <!-- MySQL连接驱动 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    
+    在application.properties中配置数据库和jpa的相关属性
+    #DB Configuration:
+    spring.datasource.driverClassName=com.mysql.jdbc.Driver
+    spring.datasource.url=jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=utf8
+    spring.datasource.username=root
+    spring.datasource.password=root
+    ​
+    #JPA Configuration:
+    spring.jpa.database=MySQL
+    spring.jpa.show-sql=true
+    spring.jpa.generate-ddl=true
+    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.hibernate.naming_strategy=org.hibernate.cfg.ImprovedNamingStrategy
+    
+    
+    创建实体配置实体
+        使用jpa相关注解
+        
+    UserRepository接口编写继承JpaRepository       
+      
+### spring整合redis
+
+    添加依赖
+    
+        <!-- 配置使用redis启动器 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        
+        
+    配置redis的连接信息
+    #Redis
+    spring.redis.host=127.0.0.1
+    spring.redis.port=6379        
+     
+     
+    使用redisTemplate进行测试
+    
+### spring整合security
+
+
+    添加依赖
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>       
+     
+     此时访问任何一个url都会被拦截到   
+     
+     如果未登录则会进入默认login页面
+        默认用户未user
+        默认user密码：启动类加载时控制台会显示一个密码：617899c8-8770-4ed7-9776-eac3a1e792f5
+        
+      
 # git
+    关于参考文档即可，重点掌握如何使用，尤其时结合idea
+## git历史
+
+## git与svn
+
+## git工作流程
+
+## git的安装
+
+## 使用git管理文件版本
+
+    创建版本库
+    
+    添加文件
+        添加文件的过程
+        工作区和暂存区
+    修改文件
+        提交修改
+        查看修改历史
+        差异比较
+        还原修改
+    删除文件
+    忽略文件语法规范
+    
+    结合远程仓库进行使用
+    
+    分支管理
+    
+    结合idea的使用
+
+
