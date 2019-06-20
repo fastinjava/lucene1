@@ -315,6 +315,18 @@
     		        实体类上的注解：
     		            @Entity //声明实体类
     		            @Table(name="cst_customer") //建立实体类和表的映射关系
+    		            
+    		        实体类中字段上的注解：
+    		            @Id//声明当前私有属性为主键
+                        //    @GeneratedValue(strategy=GenerationType.SEQUENCE) //序列
+                         @GeneratedValue(strategy=GenerationType.IDENTITY) //配置主键的生成策略
+                        /*
+                        *  TABLE,
+                        SEQUENCE,
+                        IDENTITY,
+                        AUTO;
+                        * */
+                        @Column(name="cust_id") //指定和表中cust_id字段的映射关系
     		5.保存客户到数据库中
     	ii.完成基本CRUD案例
     		persist ： 保存
@@ -364,8 +376,60 @@
         em.close();
         factory.close();
         
-         		
+### jpql案例演示
 
+
+        方法前置
+        EntityManager entityManager = JpaUtil.getEntityManager();抽取了公共接口类
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        创建Query对象
+            jpsql语法：
+                和sql语法及其相似，只不过sql中操作表和字段在jpql中对应的就是实体类和属性
+                
+                from Customer 查询所有
+                from Customer order by custId desc 查询所有按照custId属性降序
+                select count (custId) FROM Customer 查询总记录数
+                FROM Customer where custName like ? 条件查询
+                
+        Query query = entityManager.createQuery("from Customer ");
+        如果查询到的结果是一个集合调用getResultList
+            如果查询到的结果是一个集合调用getResultList，进一步如果想要分页
+            query.setFirstResult(2);//limit前?
+            query.setMaxResults(2);//limit后?
+            query.setParameter(1,"网易%");//条件查询，param1：第n个占位符，param2第n个占位符的值
+        如果查询到的结果是一个单行单列getSingleResult
+        List resultList = query.getResultList();
+        for (Object cust : resultList) {
+            System.out.println(cust);
+        }
+        
+        
+        
+        
+        transaction.commit();
+        entityManager.close();
+
+### SpringDataJpa orm思想，hibernate，JPA的相关操作
+     	案例：客户的基本CRUD
+     	i.搭建环境
+     		创建工程导入坐标
+     		配置spring的配置文件（配置spring Data jpa的整合）
+     		编写实体类（Customer），使用jpa注解配置映射关系
+     	ii.编写一个符合springDataJpa的dao层接口
+     		* 只需要编写dao层接口，不需要编写dao层接口的实现类
+     		* dao层接口规范
+     			1.需要继承两个接口（JpaRepository，JpaSpecificationExecutor）
+     			2.需要提供响应的泛型
+     	
+     	* 
+     		findOne（id） ：根据id查询
+     		save(customer):保存或者更新（依据：传递的实体类对象中，是否包含id属性）
+     		delete（id） ：根据id删除
+     		findAll() : 查询全部        		
+### SpringDataJpa案例演示
+
+    
 
 # spring boot
 
