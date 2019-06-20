@@ -415,6 +415,12 @@
      	i.搭建环境
      		创建工程导入坐标
      		配置spring的配置文件（配置spring Data jpa的整合）
+     		
+     		
+     		
+     		
+     		
+     		
      		编写实体类（Customer），使用jpa注解配置映射关系
      	ii.编写一个符合springDataJpa的dao层接口
      		* 只需要编写dao层接口，不需要编写dao层接口的实现类
@@ -423,14 +429,226 @@
      			2.需要提供响应的泛型
      	
      	* 
-     		findOne（id） ：根据id查询
+     		findOne（id） ：根据id查询 
+     		    getOne(id): 根据id查询，底层调用getReference延迟加载
      		save(customer):保存或者更新（依据：传递的实体类对象中，是否包含id属性）
      		delete（id） ：根据id删除
      		findAll() : 查询全部        		
 ### SpringDataJpa案例演示
+    @RunWith(SpringJUnit4ClassRunner.class)
+    @ContextConfiguration(locations="classpath:application.xml")
+    
+    public class CustomerDaoTest {
+        @Autowired
+        private CustomerDao customerDao;//动态代理对象
+        方法
+        
+        customerDao.save(c);
+        
+        Customer customer = customerDao.findOne(1l);
+        
+        Customer customer = customerDao.findOne(1l);
+        
+        Customer customer = customerDao.findOne(1l);
+        customer.setCustName("杭州同花顺");
+        customerDao.save(customer);
+        
+        
+        customerDao.findAll();
+        
+        customerDao.count();
+        customerDao.exists(1L);
+        getOne需要事务注解
+        customerDao.getOne(1l);
+    }
+    
+    
+### 复杂查询
+	i.借助接口中的定义好的方法完成查询
+		findOne(id):根据id查询
+	ii.jpql的查询方式
+		jpql ： jpa query language  （jpq查询语言）
+		特点：语法或关键字和sql语句类似
+			查询的是类和类中的属性
+			
+		* 需要将JPQL语句配置到接口方法上
+			1.特有的查询：需要在dao接口上配置方法
+			2.在新添加的方法上，使用注解的形式配置jpql查询语句
+			3.注解 ： @Query
+        
+         //@Query 使用jpql的方式查询。
+            @Query(value="from Customer")
+            public List<Customer> findAllCustomer();
+        
+        
+            //@Query 使用jpql的方式查询。?1代表参数的占位符，其中1对应方法中的参数索引
+            @Query(value = "from Customer where custName = ?1")
+            public Customer findCustomer(String custName);
+        
+            /**
+             * field = ?n
+             * field字段的值从方法参数列表的第n个位置取值
+             * @param name
+             * @param id
+             * @return
+             */
+            @Query(value = "from Customer where custName = ?1 and custId = ?2")
+            public Customer findCustomerByCustNameAndCustId(String name,long id);
+        
+            /**
+             * @Query:代表查询，而我们现在是更新操作
+             * @Modifying 更新操作
+             * @param id
+             * @param name
+             * update cst_customer set cust_name=? where cust_id=?
+             *
+             * update Customer set custName = ?2 where custId = ?1
+             */
+            @Query(value = "update Customer set custName = ?2 where custId = ?1")
+            @Modifying
+            public void updateByCustNameAndCustId(long id,String name);
 
+        
+        
+	iii.sql语句的查询
+			1.特有的查询：需要在dao接口上配置方法
+			2.在新添加的方法上，使用注解的形式配置sql查询语句
+			3.注解 ： @Query
+				value ：jpql语句 | sql语句
+				nativeQuery ：false（使用jpql查询） | true（使用本地查询：sql查询）
+					是否使用本地查询
+			
+            @Query(value="select * from cst_customer",nativeQuery = true)
+            public List<Object[]> findAllCustomerBySql();
+        
+            @Query(value="select * from cst_customer WHERE cust_name LIKE ?1",nativeQuery = true)
+            public List<Object[]> findAllCustomerBySql(String name);		
+            
+            
+	iiii.方法名称规则查询 
+	
+	      以findBy开头，框架本身为我们实现了方法
+	      
+	      public Customer findByCustName(String custName);
+          public List<Customer> findByCustNameLike(String custName);
+	      public Customer findByCustNameLikeAndCustIndustry(String custName,String custIndustry);
+
+### Specifications动态查询
+    //查询单个对象
+    T findOne(Specification<T> var1);
+    //查询列表
+    List<T> findAll(Specification<T> var1);
+    //查询列表，带分页
+     Pageable pageable = new PageRequest(0,5);
+    Page<T> findAll(Specification<T> var1, Pageable var2);
+    //查询列表，带排序
+    
+    Sort sort = new Sort(Sort.Direction.DESC,"custId");
+    List<T> findAll(Specification<T> var1, Sort var2);
+    //统计查询
+    long count(Specification<T> var1);
+    Specification：查询条件
+### Specifications动态查询案例	            
+     /**自定义查询条件对象
+     * 1、实现接口Specification，这里使用了匿名内部类
+     * 2、实现toPredicate方法
+     */
+    Specification<Customer> spec = new Specification<Customer>() {
+        /**
+         *
+         * @param root 获取需要查询的属性
+         * @param criteriaQuery
+         * @param criteriaBuilder 构造查询条件
+                    
+                criteriaBuilder将多个条件组合起来
+                    criteriaBuilder.and(predicate, predicate1);
+                     Predicate predicate = criteriaBuilder.like(custName.as(String.class), "杭州%");模糊查询
+                Predicate equal(Expression<?> var1, Expression<?> var2);
+
+                Predicate equal(Expression<?> var1, Object var2);
+
+                Predicate notEqual(Expression<?> var1, Expression<?> var2);
+
+                Predicate notEqual(Expression<?> var1, Object var2);
+         * @return
+         */
+        public Predicate toPredicate(Root<Customer> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+            Path<Object> custName = root.get("custName");
+            Predicate predicate = criteriaBuilder.equal(custName, "慕课网成员");
+            return predicate;
+        }
+    };
+     Customer customer = customerDao.findOne(spec);
+### springdatajpa 多表查询
+
+#### SpringDataJpa one2many多表的实体类配置
+
+    one2many
+    
+        one
+            使用@OneToMany注解
+                mappedBy：many一方实体类中配置的one一方的属性值
+                    private Customer customer;
+                    
+                cascade：级联级别
+                    ALL,全部级联
+                    PERSIST,保存级联
+                    MERGE,更新级联
+                    REMOVE,删除级联
+                    REFRESH,
+                    DETACH;
+                fetch：是否采用延迟加载
+                    FetchType.EAGER:立即加载
+                    FetchType.LAZY：延迟加载
+            @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+            private Set<Linkman> linkMans = new HashSet<Linkman>();
+
+        many一方：
+                使用@ManyToOne注解
+                    targetEntity：对方的字节码
+                使用@JoinColumn注解
+                    name:从表（多的一方）的外键，
+                    referencedColumnName主表的主键   
+                @ManyToOne(targetEntity = Customer.class)
+                @JoinColumn(name = "lkm_cust_id",referencedColumnName = "cust_id")
+                private Customer customer;
+#### SpringDataJpa many2many多表的实体类配置
+    
+    many2many
+        
+        many一方：
+                使用@ManyToMany注解
+                    targetEntity：对方类型
+                    cascade：加载机制
+                @ManyToMany(targetEntity = Role.class,cascade = CascadeType.ALL)
+                
+                使用@JoinTable注解
+                    name：中间表名称
+                    joinColumns：
+                        @JoinColumn：
+                            name：当前对象在中间表中的外键
+                            referencedColumnName：当前对象在当前表中的主键
+                    inverseJoinColumns：
+                        @JoinColumn：
+                            name：对方对象在中间表中的外键
+                            referencedColumnName：对方对象在其表中的主键
+                    
+                @JoinTable(name = "sys_user_role",
+                        //joinColumns,当前对象在中间表中的外键
+                        joinColumns = {@JoinColumn(name = "sys_user_id",referencedColumnName = "user_id")},
+                        //inverseJoinColumns，对方对象在中间表的外键
+                        inverseJoinColumns = {@JoinColumn(name = "sys_role_id",referencedColumnName = "role_id")}
+                )
+                
+                private Set<Role> roles = new HashSet<Role>();
+        many另一方：
+                //多对多关系映射
+                @ManyToMany(mappedBy="roles")
+                private Set<User> users = new HashSet<User>();
     
 
+
+    
 # spring boot
 
 # git
